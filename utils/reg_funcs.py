@@ -60,7 +60,13 @@ def bn_forward(x, gamma, beta, bn_params, mode):
         #         moving_mean and moving_var in the bn_params       #
         #############################################################
         #raise NotImplementedError
-        pass
+        mean, var = np.mean(x,axis=0), np.var(x,axis=0)
+        out = gamma*(x-mean)/np.sqrt(var+eps) + beta
+
+        
+        moving_mean = decay*moving_mean + (1-decay)*mean
+        moving_var = decay*moving_var + (1-decay)*var
+        
         #############################################################
         #                       END OF YOUR CODE                    #
         #############################################################
@@ -71,7 +77,9 @@ def bn_forward(x, gamma, beta, bn_params, mode):
         # TODO: Batch normalization forward test mode               #
         #############################################################
         #raise NotImplementedError
-        pass
+        mean, var = np.mean(x,axis=0), np.var(x,axis=0)
+        out = (x-moving_mean)/np.sqrt(moving_var+eps)
+        out = gamma*out + beta
         #############################################################
         #                       END OF YOUR CODE                    #
         #############################################################

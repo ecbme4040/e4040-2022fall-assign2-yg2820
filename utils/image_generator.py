@@ -30,6 +30,18 @@ class ImageGenerator(object):
         #                         TODO: YOUR CODE HERE                        #
         #######################################################################
         # raise NotImplementedError
+        self.x = x 
+        self.y = y 
+        self.degree = 0
+        self.is_horizontal_flip = False
+        self.is_vertical_flip = False
+        self.is_add_noise = False
+        self.is_bright = False
+        self.N = x.shape[0]
+        self.height = x.shape[1]
+        self.width = x.shape[2]
+        self.channels = x.shape[3]
+        self.num_pixel_translated = 0
         
         #######################################################################
         #                                END TODO                             #
@@ -108,7 +120,22 @@ class ImageGenerator(object):
         #                         TODO: YOUR CODE HERE                        #
         #######################################################################
         # raise NotImplementedError
+        x_aug, y_aug = self.x_aug.copy(), self.y_aug.copy()
+        num_batch = self.N_aug // batch_size
+        batch_count = 0
         
+        while True:
+            if batch_count < num_batch:
+                yield (x_aug[batch_count*batch_size: (batch_count+1)*batch_size],
+                       y_aug[batch_count*batch_size: (batch_count+1)*batch_size])
+                batch_count = batch_count + 1
+            else:
+                if shuffle:
+                    index = np.arange(self.N_aug)
+                    np.random.shuffle(index)
+                    self.x_aug = x_aug[index]
+                    self.y_aug = y_aug[index]
+                batch_count = 0 
                 
         #######################################################################
         #                                END TODO                             #
@@ -124,7 +151,12 @@ class ImageGenerator(object):
         #                         TODO: YOUR CODE HERE                        #
         #######################################################################
         # raise NotImplementedError
-        
+        fig = plt.figure(figsize=(10, 10))
+
+        for i in range(16):
+            ax = fig.add_subplot(4, 4, i+1)
+            ax.imshow(images[i].reshape(28, 28), 'gray')
+            ax.axis('off')
         #######################################################################
         #                                END TODO                             #
         #######################################################################
@@ -148,7 +180,16 @@ class ImageGenerator(object):
         #                         TODO: YOUR CODE HERE                        #
         #######################################################################
         # raise NotImplementedError
+        translated = self.x.copy()
+        translated = np.roll(translated, shift_height, axis=1)
+        translated = np.roll(translated, shift_width, axis=2)
         
+        self.translated = (translated, self.y.copy())
+        self.N_aug += self.N
+        self.num_pixel_translated += shift_height * self.width + shift_width * self.height
+        print('Shift height: ', shift_height, 'Shift width: ', shift_width)
+        
+        return translated
         #######################################################################
         #                                END TODO                             #
         #######################################################################
@@ -167,7 +208,15 @@ class ImageGenerator(object):
         #                         TODO: YOUR CODE HERE                        #
         #######################################################################
         # raise NotImplementedError
+        rotated = rotate(self.x.copy(), angle, axes=(1,2),reshape=False)
         
+        self.degree = angle
+        self.rotated = (rotated, self.y.copy())
+        self.N_aug += self.N
+        print('Rotate bt degree: ', angle)
+        return rotated
+    
+    
         #######################################################################
         #                                END TODO                             #
         #######################################################################
@@ -213,7 +262,20 @@ class ImageGenerator(object):
         #                         TODO: YOUR CODE HERE                        #
         #######################################################################
         # raise NotImplementedError
+        self.is_add_noise = True
+        sample_size = self.N
+        index_to_add = np.random.choice(sample_size,int(np.floor(sample_size*portion)))
+        added_x = self.x[index_to_add].copy()
+        added_y = self.y[index_to_add].copy()
+            
+        noise = np.random.normal(0,amplitude,size = (int(np.floor(sample_size*portion)),self.height,self.width,self.channels))
         
+        added = added_x + noise
+        
+        self.added = (added,added_y)
+        self.N_aug += int(np.floor(sample_size*portion))
+        print('Added noise of proportion: ',portion, 'and amplitude: ',amplitude )
+        return added
         #######################################################################
         #                                END TODO                             #
         #######################################################################

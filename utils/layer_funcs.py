@@ -148,7 +148,29 @@ def conv2d_forward(x, w, b, pad, stride):
     #                         TODO: YOUR CODE HERE                        #
     #######################################################################
     # raise NotImplementedError
+    batch, height, width, channels = x.shape
+    filter_height, filter_width, channels, num_of_filters = w.shape
+    new_height = ((height - filter_height + 2 * pad) // stride) + 1
+    new_width = ((width - filter_width + 2 * pad) // stride) + 1
     
+    dim_out = (batch, new_height, new_width, num_of_filters)
+    out = np.zeros(dim_out)
+
+    if pad == 0:
+        x_padding = x
+    else:
+        dim_padding = (batch, height+2*pad, width+2*pad, channels)
+        x_padding = np.zeros(dim_padding)
+        x_padding[:, pad:-pad, pad:-pad, :] = x
+    
+    for bat in range(batch):
+        for f in range(num_of_filters):
+            for i in range(new_height):
+                for j in range(new_width):
+                    out_matrix = x_padding[bat, i*stride:i*stride+filter_height, j*stride:j*stride+filter_width, :] * w[:,:,:,f]
+                    out[bat, i, j, f] = np.sum(out_matrix) + b[f]
+    return out
+
     #######################################################################
     #                           END OF YOUR CODE                          #
     #######################################################################
@@ -210,7 +232,21 @@ def avg_pool_forward(x, pool_size, stride):
     #                         TODO: YOUR CODE HERE                        #
     #######################################################################
     # raise NotImplementedError
+    batch, height, width, channels = x.shape
+    new_height = (height-pool_size)//stride +1
+    new_width = (width-pool_size)//stride + 1
     
+    dim_out = (batch, new_height, new_width, channels)
+    out = np.zeros(dim_out)
+    
+    for bat in range(batch):
+        for c in range(channels):
+            for h in range(new_height):
+                for w in range(new_width):
+                    matrix = x[bat, h*stride:h*stride+pool_size, w*stride:w*stride+pool_size, c]
+                    out[bat,h,w,c] = np.average(matrix) 
+
+    return out
     #######################################################################
     #                           END OF YOUR CODE                          #
     #######################################################################
@@ -235,7 +271,16 @@ def avg_pool_backward(dout, x, pool_size, stride):
     #                         TODO: YOUR CODE HERE                        #
     #######################################################################
     # raise NotImplementedError
+    batch, height_new, width_new, num_of_filters = dout.shape
+    dx = np.zeros_like(x)
     
+    for bat in range(batch):
+        for c in range(num_of_filters):
+            for h in range(height_new):
+                for w in range(width_new):
+                    s = dout[bat, h, w, c] / (pool_size * pool_size)
+                    dx[bat, h*stride:h*stride+pool_size, w*stride:w*stride+pool_size, c] += np.ones((pool_size, pool_size)) * s
+    return dx
     #######################################################################
     #                           END OF YOUR CODE                          #
     #######################################################################

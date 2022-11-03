@@ -53,7 +53,11 @@ class MyLeNet_trainer():
         #       from part 3
         #############################################################
         # raise NotImplementedError
-        
+        train_data.brightness(1.5)
+        train_data.flip('v')
+        train_data.translate(1,1)
+        train_data.add_noise(0.5,1)
+        train_data.create_aug_data()
         #############################################################
         # END TODO
         #############################################################
@@ -93,7 +97,9 @@ class MyLeNet_trainer():
         # hint: use python next feature "next(self.train_data_next_batch)""
         #############################################################
         # raise NotImplementedError
-        
+        for batch in range(self.n_batches):
+            train_x, train_y = next(self.train_data_next_batch)
+            self.train_step(train_x, train_y, training=True)
         #############################################################
         # END TODO
         #############################################################
