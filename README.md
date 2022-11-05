@@ -25,10 +25,6 @@ INSTRUCTIONS for naming the students' solution repository for assignments with m
 TODO students: Run commands to create a directory tree, as described in previous assignments
 
 ```
-
-```
-
-
 ./
 ├── Assignment2-intro.ipynb
 ├── KaggleModel
@@ -89,3 +85,5 @@ TODO students: Run commands to create a directory tree, as described in previous
     └── reg_funcs.py
 
 15 directories, 42 files
+
+```
