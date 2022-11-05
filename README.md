@@ -25,14 +25,10 @@ INSTRUCTIONS for naming the students' solution repository for assignments with m
 TODO students: Run commands to create a directory tree, as described in previous assignments
 
 ```
-.
-├── Assignment2_intro.ipynb
-├── README.md
-├── requirements.txt
-├── ...
+
 ```
 
-15 directories, 42 files
+
 ./
 ├── Assignment2-intro.ipynb
 ├── KaggleModel
