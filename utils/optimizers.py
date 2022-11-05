@@ -156,6 +156,8 @@ class SGDmomentumOptim(Optimizer):
         for k in grads:
             velocities[k] = momentum*velocities[k] + learning_rate*grads[k]
             params[k] = params[k] - velocities[k]
+        model.params = params
+        self.velocities = velocities
         ###################################################
         #               END OF YOUR CODE                  #
         ###################################################
@@ -205,14 +207,18 @@ class AdamOptim(Optimizer):
         # params                                          #
         ###################################################
         #raise NotImplementedError
+        t = t+1
         for k in grads:
-            t = t+1
             momentums[k] = beta1*momentums[k] + (1-beta1)*grads[k]
             momentum_hat = momentums[k]/(1-beta1**t)
             velocities[k] = beta2*velocities[k]+(1-beta2)*grads[k]**2
             velocity_hat = velocities[k]/(1-beta2**t)
             params[k] = params[k] - learning_rate/(velocity_hat**(1/2)+eps)*momentum_hat
-            
+        
+        self.t = t
+        self.velocities = velocities
+        self.momentums = momentums
+        model.params = params
             
         
         ###################################################
@@ -264,13 +270,17 @@ class NadamOptim(Optimizer):
         # params                                          #
         ###################################################
         #raise NotImplementedError
+        t = t+1
         for k in grads:
-            t = t+1
             momentums[k] = beta1*momentums[k] + (1-beta1)*grads[k]
             momentum_hat = momentums[k]/(1-beta1**t)
             velocities[k] = beta2*velocities[k]+(1-beta2)*grads[k]**2
             velocity_hat = velocities[k]/(1-beta2**t)
             params[k] = params[k] - learning_rate/(velocity_hat**(1/2)+eps)*(beta1*momentum_hat+(1-beta1)*grads[k]/(1-beta1**t))
+        self.t = t
+        model.params = params
+        self.velocities = velocities
+        self.momentums = momentums
         ###################################################
         #               END OF YOUR CODE                  #
         ###################################################
@@ -389,24 +399,23 @@ class SGDmomtraceOptim(SGDmomentumOptim):
                     #raise NotImplementedError
                     
                     preds = model.forward(X_batch)
-                    loss += model.loss(preds, y_batch)
+                    temp_loss = model.loss(preds, y_batch)
+                    loss += temp_loss
                     
                     ###################################################
                     # TODO: Update model and upper bound (RHS value)  #
                     ###################################################
                     #raise NotImplementedError
-#params[k] = params[k] - velocities[k]
+
+                    super().step(model,lr)
+                    upper += temp_loss                        
             
                     for j in model.params:
-                        #velocities[j] = momentum*velocities[j] + lr*grads[j]
+                        velocities[j] = self.momentum*velocities[j] + lr*grads[j]
                         model.params[j] = model.params[j] - velocities[j]
-                    
-                    upper = loss
-                    for j in grads:
-                        #print(alpha1*lr)
-                        #print(j,grads[j].flatten(),velocities[j].flatten())
-                        upper += alpha1*lr*(np.transpose(grads[j].flatten())@(-velocities[j].flatten()/lr))
-                    #print(loss>upper)
+                        upper = upper - alpha1*np.sum(grads[j]*velocities[j])
+            
+  
                     ###################################################
                     # TODO: Re-calculate the loss (LHS value)         #
                     ###################################################
@@ -448,9 +457,10 @@ class SGDmomtraceOptim(SGDmomentumOptim):
                 ###################################################
                 #raise NotImplementedError
                 if loss_search <= upper or num_searches >= max_searches:
+                    learning_rate = lr
                     break
                 else:
-                    lr = alpha2*lr
+                    lr = alpha2 * lr
                 ###################################################
                 #               END OF YOUR CODE                  #
                 ###################################################
